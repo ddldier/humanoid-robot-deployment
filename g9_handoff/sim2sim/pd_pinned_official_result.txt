@@ -1,0 +1,9 @@
+Simulation timestep: 0.002
+Steps: 1000
+Initial max error: 0.049999510327535135
+Final max error: 0.007801804772235327
+Final mean error: 0.001733221577005489
+Max commanded torque: 4.954851474438077
+Worst joint: right_shoulder_pitch_joint error= 0.007801804772235327
+
+Pinned-base PD check: PASS

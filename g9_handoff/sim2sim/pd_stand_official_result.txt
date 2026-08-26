@@ -1,0 +1,23 @@
+MJCF: /root/gpufree-data/unitree_rl_mjlab/resource/g1_description/scene_29dof_official.xml
+ONNX: /root/gpufree-data/whole_body_tracking/sim2sim_mujoco/exported/policy_wo_state_model_34500.onnx
+Simulation timestep: 0.002
+Number of actuators: 29
+Joint mapping: PASS
+Actuator torque-mode check: PASS
+Automatic base height: XML=0.7930 contact=0.7565 start=0.7575
+Initial contacts: 0
+Initial base position: [0.     0.     0.7575]
+Default-position range: -0.363 0.669
+Kp range: 14.251 99.098
+Kd range: 0.907 6.309
+t=  0.00 pelvis_z= 0.758 max_q_error= 0.0000 max_tau=   0.00
+t=  1.00 pelvis_z= 0.693 max_q_error= 0.4619 max_tau=  14.56
+t=  2.00 pelvis_z= 0.112 max_q_error= 0.1059 max_tau=   5.45
+t=  3.00 pelvis_z= 0.094 max_q_error= 0.1899 max_tau=   5.39
+t=  4.00 pelvis_z= 0.094 max_q_error= 0.1863 max_tau=   5.31
+t=  5.00 pelvis_z= 0.094 max_q_error= 0.1852 max_tau=   5.28
+
+PD stand test finished
+Simulation time: 5.001999999999671
+Wall time: 6.941008178517222
+Final base position: [9.15458644e-01 5.59999095e-04 9.42070505e-02]

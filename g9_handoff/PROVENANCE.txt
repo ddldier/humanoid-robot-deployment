@@ -1,0 +1,6 @@
+run_name=2026-08-17_21-34-16_G9_tail_direct_v2_scratch_20001
+checkpoint=model_15000.pt
+onnx_source=logs/rsl_rl/g1_flat/2026-08-17_21-34-16_G9_tail_direct_v2_scratch_20001/exported/policy.onnx
+motion_source=/root/Downloads/G9_rightfeiti_trajectory_stance_blend15_tail_direct_v2.npz
+git_commit=unknown
+generated=2026-08-18T15:01:23+08:00

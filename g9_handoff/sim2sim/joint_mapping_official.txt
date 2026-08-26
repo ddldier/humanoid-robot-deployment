@@ -1,0 +1,39 @@
+MJCF: /root/gpufree-data/unitree_rl_mjlab/resource/g1_description/g1_29dof_unitree_official.xml
+Policy joints: 29
+MuJoCo actuators: 29
+
+Missing from MuJoCo: []
+Extra in MuJoCo: []
+
+=== Policy -> MuJoCo mapping ===
+00 left_hip_pitch_joint             actuator=00 actuator_name=left_hip_pitch               qpos=07 qvel=06
+01 right_hip_pitch_joint            actuator=06 actuator_name=right_hip_pitch              qpos=13 qvel=12
+02 waist_yaw_joint                  actuator=12 actuator_name=waist_yaw                    qpos=19 qvel=18
+03 left_hip_roll_joint              actuator=01 actuator_name=left_hip_roll                qpos=08 qvel=07
+04 right_hip_roll_joint             actuator=07 actuator_name=right_hip_roll               qpos=14 qvel=13
+05 waist_roll_joint                 actuator=13 actuator_name=waist_roll                   qpos=20 qvel=19
+06 left_hip_yaw_joint               actuator=02 actuator_name=left_hip_yaw                 qpos=09 qvel=08
+07 right_hip_yaw_joint              actuator=08 actuator_name=right_hip_yaw                qpos=15 qvel=14
+08 waist_pitch_joint                actuator=14 actuator_name=waist_pitch                  qpos=21 qvel=20
+09 left_knee_joint                  actuator=03 actuator_name=left_knee                    qpos=10 qvel=09
+10 right_knee_joint                 actuator=09 actuator_name=right_knee                   qpos=16 qvel=15
+11 left_shoulder_pitch_joint        actuator=15 actuator_name=left_shoulder_pitch          qpos=22 qvel=21
+12 right_shoulder_pitch_joint       actuator=22 actuator_name=right_shoulder_pitch         qpos=29 qvel=28
+13 left_ankle_pitch_joint           actuator=04 actuator_name=left_ankle_pitch             qpos=11 qvel=10
+14 right_ankle_pitch_joint          actuator=10 actuator_name=right_ankle_pitch            qpos=17 qvel=16
+15 left_shoulder_roll_joint         actuator=16 actuator_name=left_shoulder_roll           qpos=23 qvel=22
+16 right_shoulder_roll_joint        actuator=23 actuator_name=right_shoulder_roll          qpos=30 qvel=29
+17 left_ankle_roll_joint            actuator=05 actuator_name=left_ankle_roll              qpos=12 qvel=11
+18 right_ankle_roll_joint           actuator=11 actuator_name=right_ankle_roll             qpos=18 qvel=17
+19 left_shoulder_yaw_joint          actuator=17 actuator_name=left_shoulder_yaw            qpos=24 qvel=23
+20 right_shoulder_yaw_joint         actuator=24 actuator_name=right_shoulder_yaw           qpos=31 qvel=30
+21 left_elbow_joint                 actuator=18 actuator_name=left_elbow                   qpos=25 qvel=24
+22 right_elbow_joint                actuator=25 actuator_name=right_elbow                  qpos=32 qvel=31
+23 left_wrist_roll_joint            actuator=19 actuator_name=left_wrist_roll              qpos=26 qvel=25
+24 right_wrist_roll_joint           actuator=26 actuator_name=right_wrist_roll             qpos=33 qvel=32
+25 left_wrist_pitch_joint           actuator=20 actuator_name=left_wrist_pitch             qpos=27 qvel=26
+26 right_wrist_pitch_joint          actuator=27 actuator_name=right_wrist_pitch            qpos=34 qvel=33
+27 left_wrist_yaw_joint             actuator=21 actuator_name=left_wrist_yaw               qpos=28 qvel=27
+28 right_wrist_yaw_joint            actuator=28 actuator_name=right_wrist_yaw              qpos=35 qvel=34
+
+Joint mapping check: PASS

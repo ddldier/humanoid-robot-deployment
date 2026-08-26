@@ -1,0 +1,176 @@
+[
+  {
+    "name": "left_hip_pitch_joint",
+    "type": "revolute",
+    "parent": "pelvis",
+    "child": "left_hip_pitch_link"
+  },
+  {
+    "name": "left_hip_roll_joint",
+    "type": "revolute",
+    "parent": "left_hip_pitch_link",
+    "child": "left_hip_roll_link"
+  },
+  {
+    "name": "left_hip_yaw_joint",
+    "type": "revolute",
+    "parent": "left_hip_roll_link",
+    "child": "left_hip_yaw_link"
+  },
+  {
+    "name": "left_knee_joint",
+    "type": "revolute",
+    "parent": "left_hip_yaw_link",
+    "child": "left_knee_link"
+  },
+  {
+    "name": "left_ankle_pitch_joint",
+    "type": "revolute",
+    "parent": "left_knee_link",
+    "child": "left_ankle_pitch_link"
+  },
+  {
+    "name": "left_ankle_roll_joint",
+    "type": "revolute",
+    "parent": "left_ankle_pitch_link",
+    "child": "left_ankle_roll_link"
+  },
+  {
+    "name": "right_hip_pitch_joint",
+    "type": "revolute",
+    "parent": "pelvis",
+    "child": "right_hip_pitch_link"
+  },
+  {
+    "name": "right_hip_roll_joint",
+    "type": "revolute",
+    "parent": "right_hip_pitch_link",
+    "child": "right_hip_roll_link"
+  },
+  {
+    "name": "right_hip_yaw_joint",
+    "type": "revolute",
+    "parent": "right_hip_roll_link",
+    "child": "right_hip_yaw_link"
+  },
+  {
+    "name": "right_knee_joint",
+    "type": "revolute",
+    "parent": "right_hip_yaw_link",
+    "child": "right_knee_link"
+  },
+  {
+    "name": "right_ankle_pitch_joint",
+    "type": "revolute",
+    "parent": "right_knee_link",
+    "child": "right_ankle_pitch_link"
+  },
+  {
+    "name": "right_ankle_roll_joint",
+    "type": "revolute",
+    "parent": "right_ankle_pitch_link",
+    "child": "right_ankle_roll_link"
+  },
+  {
+    "name": "waist_yaw_joint",
+    "type": "revolute",
+    "parent": "pelvis",
+    "child": "waist_yaw_link"
+  },
+  {
+    "name": "waist_roll_joint",
+    "type": "revolute",
+    "parent": "waist_yaw_link",
+    "child": "waist_roll_link"
+  },
+  {
+    "name": "waist_pitch_joint",
+    "type": "revolute",
+    "parent": "waist_roll_link",
+    "child": "torso_link"
+  },
+  {
+    "name": "left_shoulder_pitch_joint",
+    "type": "revolute",
+    "parent": "torso_link",
+    "child": "left_shoulder_pitch_link"
+  },
+  {
+    "name": "left_shoulder_roll_joint",
+    "type": "revolute",
+    "parent": "left_shoulder_pitch_link",
+    "child": "left_shoulder_roll_link"
+  },
+  {
+    "name": "left_shoulder_yaw_joint",
+    "type": "revolute",
+    "parent": "left_shoulder_roll_link",
+    "child": "left_shoulder_yaw_link"
+  },
+  {
+    "name": "left_elbow_joint",
+    "type": "revolute",
+    "parent": "left_shoulder_yaw_link",
+    "child": "left_elbow_link"
+  },
+  {
+    "name": "left_wrist_roll_joint",
+    "type": "revolute",
+    "parent": "left_elbow_link",
+    "child": "left_wrist_roll_link"
+  },
+  {
+    "name": "left_wrist_pitch_joint",
+    "type": "revolute",
+    "parent": "left_wrist_roll_link",
+    "child": "left_wrist_pitch_link"
+  },
+  {
+    "name": "left_wrist_yaw_joint",
+    "type": "revolute",
+    "parent": "left_wrist_pitch_link",
+    "child": "left_wrist_yaw_link"
+  },
+  {
+    "name": "right_shoulder_pitch_joint",
+    "type": "revolute",
+    "parent": "torso_link",
+    "child": "right_shoulder_pitch_link"
+  },
+  {
+    "name": "right_shoulder_roll_joint",
+    "type": "revolute",
+    "parent": "right_shoulder_pitch_link",
+    "child": "right_shoulder_roll_link"
+  },
+  {
+    "name": "right_shoulder_yaw_joint",
+    "type": "revolute",
+    "parent": "right_shoulder_roll_link",
+    "child": "right_shoulder_yaw_link"
+  },
+  {
+    "name": "right_elbow_joint",
+    "type": "revolute",
+    "parent": "right_shoulder_yaw_link",
+    "child": "right_elbow_link"
+  },
+  {
+    "name": "right_wrist_roll_joint",
+    "type": "revolute",
+    "parent": "right_elbow_link",
+    "child": "right_wrist_roll_link"
+  },
+  {
+    "name": "right_wrist_pitch_joint",
+    "type": "revolute",
+    "parent": "right_wrist_roll_link",
+    "child": "right_wrist_pitch_link"
+  },
+  {
+    "name": "right_wrist_yaw_joint",
+    "type": "revolute",
+    "parent": "right_wrist_pitch_link",
+    "child": "right_wrist_yaw_link"
+  }
+]

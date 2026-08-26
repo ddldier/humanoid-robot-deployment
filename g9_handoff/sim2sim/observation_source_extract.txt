@@ -1,0 +1,497 @@
+===== observations.py =====
+     1	from __future__ import annotations
+     2	
+     3	import torch
+     4	from typing import TYPE_CHECKING
+     5	
+     6	from isaaclab.utils.math import matrix_from_quat, subtract_frame_transforms
+     7	
+     8	from whole_body_tracking.tasks.tracking.mdp.commands import MotionCommand
+     9	
+    10	if TYPE_CHECKING:
+    11	    from isaaclab.envs import ManagerBasedEnv
+    12	
+    13	
+    14	def robot_anchor_ori_w(env: ManagerBasedEnv, command_name: str) -> torch.Tensor:
+    15	    command: MotionCommand = env.command_manager.get_term(command_name)
+    16	    mat = matrix_from_quat(command.robot_anchor_quat_w)
+    17	    return mat[..., :2].reshape(mat.shape[0], -1)
+    18	
+    19	
+    20	def robot_anchor_lin_vel_w(env: ManagerBasedEnv, command_name: str) -> torch.Tensor:
+    21	    command: MotionCommand = env.command_manager.get_term(command_name)
+    22	
+    23	    return command.robot_anchor_vel_w[:, :3].view(env.num_envs, -1)
+    24	
+    25	
+    26	def robot_anchor_ang_vel_w(env: ManagerBasedEnv, command_name: str) -> torch.Tensor:
+    27	    command: MotionCommand = env.command_manager.get_term(command_name)
+    28	
+    29	    return command.robot_anchor_vel_w[:, 3:6].view(env.num_envs, -1)
+    30	
+    31	
+    32	def robot_body_pos_b(env: ManagerBasedEnv, command_name: str) -> torch.Tensor:
+    33	    command: MotionCommand = env.command_manager.get_term(command_name)
+    34	
+    35	    num_bodies = len(command.cfg.body_names)
+    36	    pos_b, _ = subtract_frame_transforms(
+    37	        command.robot_anchor_pos_w[:, None, :].repeat(1, num_bodies, 1),
+    38	        command.robot_anchor_quat_w[:, None, :].repeat(1, num_bodies, 1),
+    39	        command.robot_body_pos_w,
+    40	        command.robot_body_quat_w,
+    41	    )
+    42	
+    43	    return pos_b.view(env.num_envs, -1)
+    44	
+    45	
+    46	def robot_body_ori_b(env: ManagerBasedEnv, command_name: str) -> torch.Tensor:
+    47	    command: MotionCommand = env.command_manager.get_term(command_name)
+    48	
+    49	    num_bodies = len(command.cfg.body_names)
+    50	    _, ori_b = subtract_frame_transforms(
+    51	        command.robot_anchor_pos_w[:, None, :].repeat(1, num_bodies, 1),
+    52	        command.robot_anchor_quat_w[:, None, :].repeat(1, num_bodies, 1),
+    53	        command.robot_body_pos_w,
+    54	        command.robot_body_quat_w,
+    55	    )
+    56	    mat = matrix_from_quat(ori_b)
+    57	    return mat[..., :2].reshape(mat.shape[0], -1)
+    58	
+    59	
+    60	def motion_anchor_pos_b(env: ManagerBasedEnv, command_name: str) -> torch.Tensor:
+    61	    command: MotionCommand = env.command_manager.get_term(command_name)
+    62	
+    63	    pos, _ = subtract_frame_transforms(
+    64	        command.robot_anchor_pos_w,
+    65	        command.robot_anchor_quat_w,
+    66	        command.anchor_pos_w,
+    67	        command.anchor_quat_w,
+    68	    )
+    69	
+    70	    return pos.view(env.num_envs, -1)
+    71	
+    72	
+    73	def motion_anchor_ori_b(env: ManagerBasedEnv, command_name: str) -> torch.Tensor:
+    74	    command: MotionCommand = env.command_manager.get_term(command_name)
+    75	
+    76	    _, ori = subtract_frame_transforms(
+    77	        command.robot_anchor_pos_w,
+    78	        command.robot_anchor_quat_w,
+    79	        command.anchor_pos_w,
+    80	        command.anchor_quat_w,
+    81	    )
+    82	    mat = matrix_from_quat(ori)
+    83	    return mat[..., :2].reshape(mat.shape[0], -1)
+
+===== tracking_env_cfg.py =====
+    95	            "yaw": (-0.2, 0.2),
+    96	        },
+    97	        velocity_range=VELOCITY_RANGE,
+    98	        joint_position_range=(-0.1, 0.1),
+    99	    )
+   100	
+   101	
+   102	@configclass
+   103	class ActionsCfg:
+   104	    """Action specifications for the MDP."""
+   105	
+   106	    joint_pos = mdp.JointPositionActionCfg(asset_name="robot", joint_names=[".*"], use_default_offset=True)
+   107	
+   108	
+   109	@configclass
+   110	class ObservationsCfg:
+   111	    """Observation specifications for the MDP."""
+   112	
+   113	    @configclass
+   114	    class PolicyCfg(ObsGroup):
+   115	        """Observations for policy group."""
+   116	
+   117	        # observation terms (order preserved)
+   118	        command = ObsTerm(func=mdp.generated_commands, params={"command_name": "motion"})
+   119	        motion_anchor_pos_b = ObsTerm(
+   120	            func=mdp.motion_anchor_pos_b, params={"command_name": "motion"}, noise=Unoise(n_min=-0.25, n_max=0.25)
+   121	        )
+   122	        motion_anchor_ori_b = ObsTerm(
+   123	            func=mdp.motion_anchor_ori_b, params={"command_name": "motion"}, noise=Unoise(n_min=-0.05, n_max=0.05)
+   124	        )
+   125	        base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.5, n_max=0.5))
+   126	        base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.2, n_max=0.2))
+   127	        joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
+   128	        joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-0.5, n_max=0.5))
+   129	        actions = ObsTerm(func=mdp.last_action)
+   130	
+   131	        def __post_init__(self):
+   132	            self.enable_corruption = True
+   133	            self.concatenate_terms = True
+   134	
+   135	    @configclass
+   136	    class PrivilegedCfg(ObsGroup):
+   137	        command = ObsTerm(func=mdp.generated_commands, params={"command_name": "motion"})
+   138	        motion_anchor_pos_b = ObsTerm(func=mdp.motion_anchor_pos_b, params={"command_name": "motion"})
+   139	        motion_anchor_ori_b = ObsTerm(func=mdp.motion_anchor_ori_b, params={"command_name": "motion"})
+   140	        body_pos = ObsTerm(func=mdp.robot_body_pos_b, params={"command_name": "motion"})
+   141	        body_ori = ObsTerm(func=mdp.robot_body_ori_b, params={"command_name": "motion"})
+   142	        base_lin_vel = ObsTerm(func=mdp.base_lin_vel)
+   143	        base_ang_vel = ObsTerm(func=mdp.base_ang_vel)
+   144	        joint_pos = ObsTerm(func=mdp.joint_pos_rel)
+   145	        joint_vel = ObsTerm(func=mdp.joint_vel_rel)
+   146	        actions = ObsTerm(func=mdp.last_action)
+   147	
+   148	    # observation groups
+   149	    policy: PolicyCfg = PolicyCfg()
+   150	    critic: PrivilegedCfg = PrivilegedCfg()
+   151	
+   152	
+   153	@configclass
+   154	class EventCfg:
+   155	    """Configuration for events."""
+
+===== flat_env_cfg_wo_state.py =====
+     1	from isaaclab.utils import configclass
+     2	
+     3	from whole_body_tracking.robots.g1 import G1_ACTION_SCALE, G1_CYLINDER_CFG
+     4	from whole_body_tracking.tasks.tracking.config.g1.agents.rsl_rl_ppo_cfg import LOW_FREQ_SCALE
+     5	from whole_body_tracking.tasks.tracking.tracking_env_cfg import TrackingEnvCfg
+     6	
+     7	
+     8	@configclass
+     9	class G1FlatEnvCfg(TrackingEnvCfg):
+    10	    def __post_init__(self):
+    11	        super().__post_init__()
+    12	
+    13	        self.scene.robot = G1_CYLINDER_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+    14	        self.actions.joint_pos.scale = G1_ACTION_SCALE
+    15	        self.commands.motion.anchor_body_name = "torso_link"
+    16	        self.commands.motion.body_names = [
+    17	            "pelvis",
+    18	            "left_hip_roll_link",
+    19	            "left_knee_link",
+    20	            "left_ankle_roll_link",
+    21	            "right_hip_roll_link",
+    22	            "right_knee_link",
+    23	            "right_ankle_roll_link",
+    24	            "torso_link",
+    25	            "left_shoulder_roll_link",
+    26	            "left_elbow_link",
+    27	            "left_wrist_yaw_link",
+    28	            "right_shoulder_roll_link",
+    29	            "right_elbow_link",
+    30	            "right_wrist_yaw_link",
+    31	        ]
+    32	
+    33	
+    34	@configclass
+    35	class G1FlatWoStateEstimationEnvCfg(G1FlatEnvCfg):
+    36	    def __post_init__(self):
+    37	        super().__post_init__()
+    38	        self.observations.policy.motion_anchor_pos_b = None
+    39	        self.observations.policy.base_lin_vel = None
+    40	
+    41	
+    42	@configclass
+    43	class G1FlatLowFreqEnvCfg(G1FlatEnvCfg):
+    44	    def __post_init__(self):
+    45	        super().__post_init__()
+    46	        self.decimation = round(self.decimation / LOW_FREQ_SCALE)
+    47	        self.rewards.action_rate_l2.weight *= LOW_FREQ_SCALE
+
+===== commands.py relevant locations =====
+35:        self.joint_pos = torch.tensor(data["joint_pos"], dtype=torch.float32, device=device)
+36:        self.joint_vel = torch.tensor(data["joint_vel"], dtype=torch.float32, device=device)
+42:        self.time_step_total = self.joint_pos.shape[0]
+61:class MotionCommand(CommandTerm):
+75:        self.time_steps = torch.zeros(self.num_envs, dtype=torch.long, device=self.device)
+80:        self.bin_count = int(self.motion.time_step_total // (1 / (env.cfg.decimation * env.cfg.sim.dt))) + 1
+94:        self.metrics["error_joint_pos"] = torch.zeros(self.num_envs, device=self.device)
+95:        self.metrics["error_joint_vel"] = torch.zeros(self.num_envs, device=self.device)
+102:        return torch.cat([self.joint_pos, self.joint_vel], dim=1)
+105:    def joint_pos(self) -> torch.Tensor:
+106:        return self.motion.joint_pos[self.time_steps]
+109:    def joint_vel(self) -> torch.Tensor:
+110:        return self.motion.joint_vel[self.time_steps]
+114:        return self.motion.body_pos_w[self.time_steps] + self._env.scene.env_origins[:, None, :]
+118:        return self.motion.body_quat_w[self.time_steps]
+122:        return self.motion.body_lin_vel_w[self.time_steps]
+126:        return self.motion.body_ang_vel_w[self.time_steps]
+129:    def anchor_pos_w(self) -> torch.Tensor:
+130:        return self.motion.body_pos_w[self.time_steps, self.motion_anchor_body_index] + self._env.scene.env_origins
+133:    def anchor_quat_w(self) -> torch.Tensor:
+134:        return self.motion.body_quat_w[self.time_steps, self.motion_anchor_body_index]
+138:        return self.motion.body_lin_vel_w[self.time_steps, self.motion_anchor_body_index]
+142:        return self.motion.body_ang_vel_w[self.time_steps, self.motion_anchor_body_index]
+145:    def robot_joint_pos(self) -> torch.Tensor:
+146:        return self.robot.data.joint_pos
+149:    def robot_joint_vel(self) -> torch.Tensor:
+150:        return self.robot.data.joint_vel
+169:    def robot_anchor_pos_w(self) -> torch.Tensor:
+173:    def robot_anchor_quat_w(self) -> torch.Tensor:
+185:        self.metrics["error_anchor_pos"] = torch.norm(self.anchor_pos_w - self.robot_anchor_pos_w, dim=-1)
+186:        self.metrics["error_anchor_rot"] = quat_error_magnitude(self.anchor_quat_w, self.robot_anchor_quat_w)
+204:        self.metrics["error_joint_pos"] = torch.norm(self.joint_pos - self.robot_joint_pos, dim=-1)
+205:        self.metrics["error_joint_vel"] = torch.norm(self.joint_vel - self.robot_joint_vel, dim=-1)
+211:                (self.time_steps * self.bin_count) // max(self.motion.time_step_total, 1), 0, self.bin_count - 1
+229:        self.time_steps[env_ids] = (
+232:            * (self.motion.time_step_total - 1)
+265:        joint_pos = self.joint_pos.clone()
+266:        joint_vel = self.joint_vel.clone()
+268:        joint_pos += sample_uniform(*self.cfg.joint_position_range, joint_pos.shape, joint_pos.device)
+269:        soft_joint_pos_limits = self.robot.data.soft_joint_pos_limits[env_ids]
+270:        joint_pos[env_ids] = torch.clip(
+271:            joint_pos[env_ids], soft_joint_pos_limits[:, :, 0], soft_joint_pos_limits[:, :, 1]
+273:        self.robot.write_joint_state_to_sim(joint_pos[env_ids], joint_vel[env_ids], env_ids=env_ids)
+280:        self.time_steps += 1
+281:        env_ids = torch.where(self.time_steps >= self.motion.time_step_total)[0]
+284:        anchor_pos_w_repeat = self.anchor_pos_w[:, None, :].repeat(1, len(self.cfg.body_names), 1)
+285:        anchor_quat_w_repeat = self.anchor_quat_w[:, None, :].repeat(1, len(self.cfg.body_names), 1)
+286:        robot_anchor_pos_w_repeat = self.robot_anchor_pos_w[:, None, :].repeat(1, len(self.cfg.body_names), 1)
+287:        robot_anchor_quat_w_repeat = self.robot_anchor_quat_w[:, None, :].repeat(1, len(self.cfg.body_names), 1)
+289:        delta_pos_w = robot_anchor_pos_w_repeat
+290:        delta_pos_w[..., 2] = anchor_pos_w_repeat[..., 2]
+291:        delta_ori_w = yaw_quat(quat_mul(robot_anchor_quat_w_repeat, quat_inv(anchor_quat_w_repeat)))
+294:        self.body_pos_relative_w = delta_pos_w + quat_apply(delta_ori_w, self.body_pos_w - anchor_pos_w_repeat)
+343:        self.current_anchor_visualizer.visualize(self.robot_anchor_pos_w, self.robot_anchor_quat_w)
+344:        self.goal_anchor_visualizer.visualize(self.anchor_pos_w, self.anchor_quat_w)
+352:class MotionCommandCfg(CommandTermCfg):
+366:    joint_position_range: tuple[float, float] = (-0.52, 0.52)
+
+===== commands.py beginning =====
+     1	from __future__ import annotations
+     2	
+     3	import math
+     4	import numpy as np
+     5	import os
+     6	import torch
+     7	from collections.abc import Sequence
+     8	from dataclasses import MISSING
+     9	from typing import TYPE_CHECKING
+    10	
+    11	from isaaclab.assets import Articulation
+    12	from isaaclab.managers import CommandTerm, CommandTermCfg
+    13	from isaaclab.markers import VisualizationMarkers, VisualizationMarkersCfg
+    14	from isaaclab.markers.config import FRAME_MARKER_CFG
+    15	from isaaclab.utils import configclass
+    16	from isaaclab.utils.math import (
+    17	    quat_apply,
+    18	    quat_error_magnitude,
+    19	    quat_from_euler_xyz,
+    20	    quat_inv,
+    21	    quat_mul,
+    22	    sample_uniform,
+    23	    yaw_quat,
+    24	)
+    25	
+    26	if TYPE_CHECKING:
+    27	    from isaaclab.envs import ManagerBasedRLEnv
+    28	
+    29	
+    30	class MotionLoader:
+    31	    def __init__(self, motion_file: str, body_indexes: Sequence[int], device: str = "cpu"):
+    32	        assert os.path.isfile(motion_file), f"Invalid file path: {motion_file}"
+    33	        data = np.load(motion_file)
+    34	        self.fps = data["fps"]
+    35	        self.joint_pos = torch.tensor(data["joint_pos"], dtype=torch.float32, device=device)
+    36	        self.joint_vel = torch.tensor(data["joint_vel"], dtype=torch.float32, device=device)
+    37	        self._body_pos_w = torch.tensor(data["body_pos_w"], dtype=torch.float32, device=device)
+    38	        self._body_quat_w = torch.tensor(data["body_quat_w"], dtype=torch.float32, device=device)
+    39	        self._body_lin_vel_w = torch.tensor(data["body_lin_vel_w"], dtype=torch.float32, device=device)
+    40	        self._body_ang_vel_w = torch.tensor(data["body_ang_vel_w"], dtype=torch.float32, device=device)
+    41	        self._body_indexes = body_indexes
+    42	        self.time_step_total = self.joint_pos.shape[0]
+    43	
+    44	    @property
+    45	    def body_pos_w(self) -> torch.Tensor:
+    46	        return self._body_pos_w[:, self._body_indexes]
+    47	
+    48	    @property
+    49	    def body_quat_w(self) -> torch.Tensor:
+    50	        return self._body_quat_w[:, self._body_indexes]
+    51	
+    52	    @property
+    53	    def body_lin_vel_w(self) -> torch.Tensor:
+    54	        return self._body_lin_vel_w[:, self._body_indexes]
+    55	
+    56	    @property
+    57	    def body_ang_vel_w(self) -> torch.Tensor:
+    58	        return self._body_ang_vel_w[:, self._body_indexes]
+    59	
+    60	
+    61	class MotionCommand(CommandTerm):
+    62	    cfg: MotionCommandCfg
+    63	
+    64	    def __init__(self, cfg: MotionCommandCfg, env: ManagerBasedRLEnv):
+    65	        super().__init__(cfg, env)
+    66	
+    67	        self.robot: Articulation = env.scene[cfg.asset_name]
+    68	        self.robot_anchor_body_index = self.robot.body_names.index(self.cfg.anchor_body_name)
+    69	        self.motion_anchor_body_index = self.cfg.body_names.index(self.cfg.anchor_body_name)
+    70	        self.body_indexes = torch.tensor(
+    71	            self.robot.find_bodies(self.cfg.body_names, preserve_order=True)[0], dtype=torch.long, device=self.device
+    72	        )
+    73	
+    74	        self.motion = MotionLoader(self.cfg.motion_file, self.body_indexes, device=self.device)
+    75	        self.time_steps = torch.zeros(self.num_envs, dtype=torch.long, device=self.device)
+    76	        self.body_pos_relative_w = torch.zeros(self.num_envs, len(cfg.body_names), 3, device=self.device)
+    77	        self.body_quat_relative_w = torch.zeros(self.num_envs, len(cfg.body_names), 4, device=self.device)
+    78	        self.body_quat_relative_w[:, :, 0] = 1.0
+    79	
+    80	        self.bin_count = int(self.motion.time_step_total // (1 / (env.cfg.decimation * env.cfg.sim.dt))) + 1
+    81	        self.bin_failed_count = torch.zeros(self.bin_count, dtype=torch.float, device=self.device)
+    82	        self._current_bin_failed = torch.zeros(self.bin_count, dtype=torch.float, device=self.device)
+    83	        self.kernel = torch.tensor(
+    84	            [self.cfg.adaptive_lambda**i for i in range(self.cfg.adaptive_kernel_size)], device=self.device
+    85	        )
+    86	        self.kernel = self.kernel / self.kernel.sum()
+    87	
+    88	        self.metrics["error_anchor_pos"] = torch.zeros(self.num_envs, device=self.device)
+    89	        self.metrics["error_anchor_rot"] = torch.zeros(self.num_envs, device=self.device)
+    90	        self.metrics["error_anchor_lin_vel"] = torch.zeros(self.num_envs, device=self.device)
+    91	        self.metrics["error_anchor_ang_vel"] = torch.zeros(self.num_envs, device=self.device)
+    92	        self.metrics["error_body_pos"] = torch.zeros(self.num_envs, device=self.device)
+    93	        self.metrics["error_body_rot"] = torch.zeros(self.num_envs, device=self.device)
+    94	        self.metrics["error_joint_pos"] = torch.zeros(self.num_envs, device=self.device)
+    95	        self.metrics["error_joint_vel"] = torch.zeros(self.num_envs, device=self.device)
+    96	        self.metrics["sampling_entropy"] = torch.zeros(self.num_envs, device=self.device)
+    97	        self.metrics["sampling_top1_prob"] = torch.zeros(self.num_envs, device=self.device)
+    98	        self.metrics["sampling_top1_bin"] = torch.zeros(self.num_envs, device=self.device)
+    99	
+   100	    @property
+   101	    def command(self) -> torch.Tensor:  # TODO Consider again if this is the best observation
+   102	        return torch.cat([self.joint_pos, self.joint_vel], dim=1)
+   103	
+   104	    @property
+   105	    def joint_pos(self) -> torch.Tensor:
+   106	        return self.motion.joint_pos[self.time_steps]
+   107	
+   108	    @property
+   109	    def joint_vel(self) -> torch.Tensor:
+   110	        return self.motion.joint_vel[self.time_steps]
+   111	
+   112	    @property
+   113	    def body_pos_w(self) -> torch.Tensor:
+   114	        return self.motion.body_pos_w[self.time_steps] + self._env.scene.env_origins[:, None, :]
+   115	
+   116	    @property
+   117	    def body_quat_w(self) -> torch.Tensor:
+   118	        return self.motion.body_quat_w[self.time_steps]
+   119	
+   120	    @property
+   121	    def body_lin_vel_w(self) -> torch.Tensor:
+   122	        return self.motion.body_lin_vel_w[self.time_steps]
+   123	
+   124	    @property
+   125	    def body_ang_vel_w(self) -> torch.Tensor:
+   126	        return self.motion.body_ang_vel_w[self.time_steps]
+   127	
+   128	    @property
+   129	    def anchor_pos_w(self) -> torch.Tensor:
+   130	        return self.motion.body_pos_w[self.time_steps, self.motion_anchor_body_index] + self._env.scene.env_origins
+   131	
+   132	    @property
+   133	    def anchor_quat_w(self) -> torch.Tensor:
+   134	        return self.motion.body_quat_w[self.time_steps, self.motion_anchor_body_index]
+   135	
+   136	    @property
+   137	    def anchor_lin_vel_w(self) -> torch.Tensor:
+   138	        return self.motion.body_lin_vel_w[self.time_steps, self.motion_anchor_body_index]
+   139	
+   140	    @property
+   141	    def anchor_ang_vel_w(self) -> torch.Tensor:
+   142	        return self.motion.body_ang_vel_w[self.time_steps, self.motion_anchor_body_index]
+   143	
+   144	    @property
+   145	    def robot_joint_pos(self) -> torch.Tensor:
+   146	        return self.robot.data.joint_pos
+   147	
+   148	    @property
+   149	    def robot_joint_vel(self) -> torch.Tensor:
+   150	        return self.robot.data.joint_vel
+   151	
+   152	    @property
+   153	    def robot_body_pos_w(self) -> torch.Tensor:
+   154	        return self.robot.data.body_pos_w[:, self.body_indexes]
+   155	
+   156	    @property
+   157	    def robot_body_quat_w(self) -> torch.Tensor:
+   158	        return self.robot.data.body_quat_w[:, self.body_indexes]
+   159	
+   160	    @property
+   161	    def robot_body_lin_vel_w(self) -> torch.Tensor:
+   162	        return self.robot.data.body_lin_vel_w[:, self.body_indexes]
+   163	
+   164	    @property
+   165	    def robot_body_ang_vel_w(self) -> torch.Tensor:
+   166	        return self.robot.data.body_ang_vel_w[:, self.body_indexes]
+   167	
+   168	    @property
+   169	    def robot_anchor_pos_w(self) -> torch.Tensor:
+   170	        return self.robot.data.body_pos_w[:, self.robot_anchor_body_index]
+   171	
+   172	    @property
+   173	    def robot_anchor_quat_w(self) -> torch.Tensor:
+   174	        return self.robot.data.body_quat_w[:, self.robot_anchor_body_index]
+   175	
+   176	    @property
+   177	    def robot_anchor_lin_vel_w(self) -> torch.Tensor:
+   178	        return self.robot.data.body_lin_vel_w[:, self.robot_anchor_body_index]
+   179	
+   180	    @property
+   181	    def robot_anchor_ang_vel_w(self) -> torch.Tensor:
+   182	        return self.robot.data.body_ang_vel_w[:, self.robot_anchor_body_index]
+   183	
+   184	    def _update_metrics(self):
+   185	        self.metrics["error_anchor_pos"] = torch.norm(self.anchor_pos_w - self.robot_anchor_pos_w, dim=-1)
+   186	        self.metrics["error_anchor_rot"] = quat_error_magnitude(self.anchor_quat_w, self.robot_anchor_quat_w)
+   187	        self.metrics["error_anchor_lin_vel"] = torch.norm(self.anchor_lin_vel_w - self.robot_anchor_lin_vel_w, dim=-1)
+   188	        self.metrics["error_anchor_ang_vel"] = torch.norm(self.anchor_ang_vel_w - self.robot_anchor_ang_vel_w, dim=-1)
+   189	
+   190	        self.metrics["error_body_pos"] = torch.norm(self.body_pos_relative_w - self.robot_body_pos_w, dim=-1).mean(
+   191	            dim=-1
+   192	        )
+   193	        self.metrics["error_body_rot"] = quat_error_magnitude(self.body_quat_relative_w, self.robot_body_quat_w).mean(
+   194	            dim=-1
+   195	        )
+   196	
+   197	        self.metrics["error_body_lin_vel"] = torch.norm(self.body_lin_vel_w - self.robot_body_lin_vel_w, dim=-1).mean(
+   198	            dim=-1
+   199	        )
+   200	        self.metrics["error_body_ang_vel"] = torch.norm(self.body_ang_vel_w - self.robot_body_ang_vel_w, dim=-1).mean(
+   201	            dim=-1
+   202	        )
+   203	
+   204	        self.metrics["error_joint_pos"] = torch.norm(self.joint_pos - self.robot_joint_pos, dim=-1)
+   205	        self.metrics["error_joint_vel"] = torch.norm(self.joint_vel - self.robot_joint_vel, dim=-1)
+   206	
+   207	    def _adaptive_sampling(self, env_ids: Sequence[int]):
+   208	        episode_failed = self._env.termination_manager.terminated[env_ids]
+   209	        if torch.any(episode_failed):
+   210	            current_bin_index = torch.clamp(
+   211	                (self.time_steps * self.bin_count) // max(self.motion.time_step_total, 1), 0, self.bin_count - 1
+   212	            )
+   213	            fail_bins = current_bin_index[env_ids][episode_failed]
+   214	            self._current_bin_failed[:] = torch.bincount(fail_bins, minlength=self.bin_count)
+   215	
+   216	        # Sample
+   217	        sampling_probabilities = self.bin_failed_count + self.cfg.adaptive_uniform_ratio / float(self.bin_count)
+   218	        sampling_probabilities = torch.nn.functional.pad(
+   219	            sampling_probabilities.unsqueeze(0).unsqueeze(0),
+   220	            (0, self.cfg.adaptive_kernel_size - 1),  # Non-causal kernel
+   221	            mode="replicate",
+   222	        )
+   223	        sampling_probabilities = torch.nn.functional.conv1d(sampling_probabilities, self.kernel.view(1, 1, -1)).view(-1)
+   224	
+   225	        sampling_probabilities = sampling_probabilities / sampling_probabilities.sum()
+   226	
+   227	        sampled_bins = torch.multinomial(sampling_probabilities, len(env_ids), replacement=True)
+   228	
+   229	        self.time_steps[env_ids] = (
+   230	            (sampled_bins + sample_uniform(0.0, 1.0, (len(env_ids),), device=self.device))
+   231	            / self.bin_count
+   232	            * (self.motion.time_step_total - 1)
+   233	        ).long()
+   234	
+   235	        # Metrics
+   236	        H = -(sampling_probabilities * (sampling_probabilities + 1e-12).log()).sum()
+   237	        H_norm = H / math.log(self.bin_count)
+   238	        pmax, imax = sampling_probabilities.max(dim=0)
+   239	        self.metrics["sampling_entropy"][:] = H_norm
+   240	        self.metrics["sampling_top1_prob"][:] = pmax

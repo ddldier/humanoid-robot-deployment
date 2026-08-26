@@ -1,0 +1,48 @@
+=== Model ===
+timestep: 0.002
+total mass: 35.112142
+base qpos: [0.    0.    0.793 1.    0.    0.    0.   ]
+contacts at default pose: 0
+whole-body COM: [2.93150512e-02 7.21770960e-05 7.22832423e-01]
+
+=== Relevant body positions ===
+pelvis                           [0.    0.    0.793]
+left_ankle_pitch_link            [-0.00152286  0.11850645  0.08885965]
+left_ankle_roll_link             [-0.00141752  0.11850645  0.07130197]
+right_ankle_pitch_link           [-0.00152286 -0.11850645  0.08885965]
+right_ankle_roll_link            [-0.00141752 -0.11850645  0.07130197]
+torso_link                       [-0.0039635  0.         0.847    ]
+
+=== Keyframes ===
+number of keyframes: 0
+
+=== Actuator limits ===
+00 left_hip_pitch_joint             ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+01 right_hip_pitch_joint            ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+02 waist_yaw_joint                  ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+03 left_hip_roll_joint              ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+04 right_hip_roll_joint             ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+05 waist_roll_joint                 ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+06 left_hip_yaw_joint               ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+07 right_hip_yaw_joint              ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+08 waist_pitch_joint                ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+09 left_knee_joint                  ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+10 right_knee_joint                 ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+11 left_shoulder_pitch_joint        ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+12 right_shoulder_pitch_joint       ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+13 left_ankle_pitch_joint           ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+14 right_ankle_pitch_joint          ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+15 left_shoulder_roll_joint         ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+16 right_shoulder_roll_joint        ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+17 left_ankle_roll_joint            ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+18 right_ankle_roll_joint           ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+19 left_shoulder_yaw_joint          ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+20 right_shoulder_yaw_joint         ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+21 left_elbow_joint                 ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+22 right_elbow_joint                ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+23 left_wrist_roll_joint            ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+24 right_wrist_roll_joint           ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+25 left_wrist_pitch_joint           ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+26 right_wrist_pitch_joint          ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+27 left_wrist_yaw_joint             ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
+28 right_wrist_yaw_joint            ctrl=[0.0, 0.0] force=[0.0, 0.0] gear=1.000
