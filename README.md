@@ -171,3 +171,20 @@ MIT License
 
 **GitHub**: https://github.com/ddldier/humanoid-robot-deployment  
 **训练代码**: [humanoid-robot-research](https://github.com/ddldier/humanoid-robot-research)
+
+## Robotac 媒体
+
+### 图片
+
+![Robotac 图片 1](robotac_photo_01.png)
+![Robotac 图片 2](robotac_photo_02.png)
+![Robotac 图片 3](robotac_photo_03.png)
+
+### 视频
+
+- [Robotac 视频 1](robotac_video_01.mp4)
+- [Robotac 视频 2](robotac_video_02.mp4)
+- [Robotac 视频 3](robotac_video_03.mp4)
+- [Robotac 视频 4](robotac_video_04.mp4)
+- [Robotac 视频 5](robotac_video_05.mp4)
+- [Robotac 视频 6](robotac_video_06.webm)
